@@ -12,9 +12,11 @@ int main(void) {
 
     for (i = 0; i < len; i++) {
         for (int j = i; j < len; j++) {
-            if (input_array[i] + input_array[j] == 2020) {
-                printf("%d\n", input_array[i] * input_array[j]);
-                break; 
+            for (int k = j; k < len; k++) {
+                if (input_array[i] + input_array[j] + input_array[k] == 2020) {
+                    printf("%d\n", input_array[i] * input_array[j] * input_array[k]);
+                    break; 
+                }
             }
         }
     } 
