@@ -13,11 +13,8 @@ int main(void) {
     int max = 0;
 
     while(scanf("%d-%d %c: %s\n", &min, &max, &rule, str) == 4) {
-        if (str[min-1] == rule || str[max-1] == rule) {
-            if (str[min-1] != rule)
-                valid_passes++;
-            else if (str[max-1] != rule)
-                valid_passes++;
+        if (str[min-1] == rule ^ str[max-1] == rule) {
+            valid_passes++;
         }
     }
 
