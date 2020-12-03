@@ -43,7 +43,7 @@ int main(void) {
     
     long long product = counts[0] * counts[1] * counts[2] * counts[3] * counts[4];
 
-    printf("(Part 2 Products of trees: %lld\n", product);
+    printf("(Part 2) Products of trees: %lld\n", product);
 
     return 0;
 }
