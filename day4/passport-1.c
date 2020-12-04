@@ -36,7 +36,7 @@ int main(void) {
         }
     }
     
-    printf("(Part 1) Number of valid passports: %d\n", num_valid);;
+    printf("(Part 1) Number of valid passports: %d\n", num_valid);
 
     return 0;
 }
