@@ -21,7 +21,7 @@ int main(void) {
                            "hgt:(1([5-8][0-9]|9[0-3])cm|(59|6[0-9]|7[0-6])in)",     // - for height
                            "hcl:#(([0-9])|([a-f])){6}",                             // - for hair color
                            "ecl:(amb|blu|brn|gry|grn|hzl|oth)",                     // - for eye color 
-                           "pid:[0-9]{9}( |\n)",                                          // - for passport id
+                           "pid:[0-9]{9}( |\n)",                                    // - for passport id
                            "cid:"                                                   // - for country id
                           };
 
