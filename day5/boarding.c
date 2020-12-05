@@ -1,16 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define BUFSIZE 12
 #define ROWS   127
 #define COLUMNS  7
 
-
 int main(void) {
 
     char b_pass[BUFSIZE];
-    unsigned int max = 0;
+    unsigned int max_id = 0;
+    unsigned int my_id = 0;
+    bool seats[1024] = {0};
 
     while (fgets(b_pass, BUFSIZE, stdin) != NULL) {
         unsigned int min_row = 0, max_row = ROWS;
@@ -39,10 +41,21 @@ int main(void) {
             i++;
         }
         int id = max_row * 8 + max_col;
-        if (id > max) max = id;
+        seats[id] = true;
+        if (id > max_id) max_id = id;
     }
 
-    printf("(Part 1) Highest seat ID: %u\n", max);
+    for (int i = 0; i <= ROWS; i++) {
+        for (int j = 0; j <= COLUMNS; j++) {
+            if (!seats[i*8+j]) {
+                if (i != 0 && j != 0 && seats[i*8+j-1] && seats[i*8+j+1])
+                    my_id = i*8+j;
+            }
+        }
+    }
+
+    printf("(Part 1) Highest seat ID: %u\n", max_id);
+    printf("(Part 2) My seat ID: %u\n", my_id);
 
     return 0; 
 }
