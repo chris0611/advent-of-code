@@ -39,9 +39,6 @@ int count_same_answers(char *str, int len) {
               c += 1;
         }
     }
-    //printf("Input string:\n%s", str);
-    //printf("People: %d\n", people);
-    //printf("Returning: %d\n\n", c);
     return c;
 }
 
