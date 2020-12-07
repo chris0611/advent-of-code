@@ -151,6 +151,11 @@ int main(void)
 
     for (int i = 0; i < amount_bags; i++) {
         printf("%d:  %s %s\nHas bags: %d\n", i, all_bags[i]->pattern, all_bags[i]->color, all_bags[i]->len);
+        if (all_bags[i]->len > 0) {
+            for (int j = 0; j < all_bags[i]->len; j++) {
+                printf(" -\t%d %s %s\n", all_bags[i]->bags[j].amt, all_bags[i]->bags[j].pattern, all_bags[i]->bags[j].color);
+            }
+        }
         free(all_bags[i]->pattern);
         free(all_bags[i]->color);
         free(all_bags[i]);
