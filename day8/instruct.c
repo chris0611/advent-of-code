@@ -12,12 +12,157 @@ typedef struct inst {
     int val;
 } inst;
 
-int main(void)
+void swap_instruction(inst *i, unsigned int type)
+{
+    i->type = type; 
+}
+
+void swap_jmp_nop(inst *i)
+{
+    if (i->type == NOP)
+        swap_instruction(i, JMP);
+    else
+        swap_instruction(i, NOP);
+}
+
+void print_instruction(inst *i)
+{
+    switch(i->type) {
+        case ACC:
+            printf("acc ");
+            break;
+        case JMP:
+            printf("jmp ");
+            break;
+        case NOP:
+            printf("nop ");
+            break;
+        default:
+            printf("Invalid Instruction\n");
+            return; 
+    }
+    if (i->val < 0) {
+        printf("%d\n", i->val);
+    } else {
+        printf("+%d\n", i->val);
+    }
+}
+
+
+long execute_program(inst **prog, int length, int *last_exec, bool part1)
 {
     long accumulator = 0;
+    bool *has_exec = calloc(length, sizeof(bool));
 
+    if (part1 && (last_exec == NULL)) {
+        // 'i' acts as the instruction pointer here
+        int i;
+        for (i = 0; i < length;) {
+            if (has_exec[i])
+                break;
+            has_exec[i] = true;
+            switch (prog[i]->type) {
+                case JMP:
+                    i += prog[i]->val;    
+                    break;
+                case ACC:
+                    accumulator += prog[i]->val;
+                case NOP:
+                default:
+                    i++;
+                    break;
+            }
+        }
+        free(has_exec);
+        return accumulator;
+    } else if (part1 && (last_exec != NULL)) {
+        int i;
+        int max = 0;
+        for (i = 0; i < length;) {
+            if (has_exec[i])
+                break;
+            if (i > max) max = i;
+            has_exec[i] = true;
+            switch (prog[i]->type) {
+                case JMP:
+                    i += prog[i]->val;    
+                    break;
+                case ACC:
+                    accumulator += prog[i]->val;
+                case NOP:
+                default:
+                    i++;
+                    break;
+            }
+        }
+        *last_exec = max;
+        free(has_exec);
+        return accumulator;
+        
+    } else {
+        // TODO: debug
+        int last_index = 0;
+        int i;
+        for (i = 0; i < length;) {
+            if (i > last_index)
+                last_index = i;
+            if (has_exec[i])
+                break;
+            has_exec[i] = true;
+            switch (prog[i]->type) {
+                case JMP:
+                    i += prog[i]->val;    
+                    break;
+                case ACC:
+                    accumulator += prog[i]->val;
+                case NOP:
+                default:
+                    i++;
+                    break;
+            }
+        } 
+
+        for (i = 0; i <= last_index; i++) {
+            if (has_exec[i] && (prog[i]->type != ACC)) {
+                int test = 0;
+                swap_jmp_nop(prog[i]);
+                execute_program(prog, length, &test, true);
+                if (test == length-1) break;
+                swap_jmp_nop(prog[i]);
+            }
+        }
+
+        for (i = 0; i < length; i++) {
+            has_exec[i] = false;
+        }
+    
+        // Run program with changed instruction
+        accumulator = 0;
+        for (i = 0; i < length;) {
+            if (has_exec[i])
+                break;
+            has_exec[i] = true;
+            switch (prog[i]->type) {
+                case JMP:
+                    i += prog[i]->val;    
+                    break;
+                case ACC:
+                    accumulator += prog[i]->val;
+                case NOP:
+                default:
+                    i++;
+                    break;
+            }
+        } 
+
+        free(has_exec);
+        return accumulator;
+    }
+}
+
+int main(void)
+{
     inst **prog = malloc(sizeof(inst*));
-    bool *has_exec = NULL;
 
     char buffer[BUFSIZE] = {0};
     unsigned int lines = 0;
@@ -47,34 +192,14 @@ int main(void)
         free(n);
         lines++;
     }
-    has_exec = calloc(lines, sizeof(bool));
     
-    // 'i' acts as the instruction pointer here
-    for (int i = 0; i < lines;) {
-        if (has_exec[i])
-            break;
-        has_exec[i] = true;
-        switch (prog[i]->type) {
-            case JMP:
-                i += prog[i]->val;    
-                //printf("Jumping to instruction %d\n", i);
-                break;
-            case ACC:
-                accumulator += prog[i]->val;
-                //printf("Accumulator is now: %ld\n", accumulator);
-            case NOP:
-            default:
-                i++;
-                break;
-        }
-    }
-    printf("(Part 1) The accumulator is at: %ld\n", accumulator);
+    printf("(Part 1) The accumulator is at: %ld\n", execute_program(prog, lines, NULL, true));
+    printf("(Part 2) The fixed program's accumulator is at: %ld\n", execute_program(prog, lines, NULL, false));
 
     for (int i = 0; i < lines; i++) {
         free(prog[i]);
     }
     free(prog);
-    free(has_exec);
 
     return 0;
 }
