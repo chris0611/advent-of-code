@@ -94,8 +94,8 @@ int main(void)
         numbers[counter] = num;
         counter++;    
     }
+
     printf("(Part 1) sum: %lu\n", invalid);
     printf("(Part 2) sum: %lu\n", search_list(numbers, invalid));
-
     return 0;
 }
