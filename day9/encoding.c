@@ -23,7 +23,7 @@ unsigned long max_list(const unsigned long *list, const unsigned int len)
         if (list[i] > max)
             max = list[i];
     }
-    printf("Max is %lu\n", max);
+    //printf("Max is %lu\n", max);
     return max;
 }
 
@@ -35,7 +35,7 @@ unsigned long min_list(const unsigned long *list, const unsigned int len)
         if (list[i] < min)
             min = list[i];
     }
-    printf("Min is %lu\n", min);
+    //printf("Min is %lu\n", min);
     return min;
 } 
 
