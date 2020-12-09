@@ -94,8 +94,8 @@ int main(void)
         numbers[counter] = num;
         counter++;    
     }
-    printf("(Part 1) the first number that doesn't fit is: %lu\n", invalid);
-    printf("(Part 2) the sum of the smallest and biggest is: %lu\n", search_list(numbers, invalid));
+    printf("(Part 1) sum: %lu\n", invalid);
+    printf("(Part 2) sum: %lu\n", search_list(numbers, invalid));
 
     return 0;
 }
