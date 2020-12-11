@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <assert.h>
+#include <limits.h>
 
 #define BUFSIZE 128
-#define ROWS 10//91 
-#define COLS 11//96 
+#define ROWS 91 //10
+#define COLS 96 //11
 
 void print_board(char **layout)
 {
@@ -45,8 +45,6 @@ void reset_board(char **layout)
     }
 }
 
-
-
 int check_neighbors(int row, int col, char **layout)
 {
     if (layout[row][col] == '.')
@@ -74,17 +72,70 @@ int check_neighbors(int row, int col, char **layout)
     return num_nbrs;
 }
 
-int update(char **layout, bool **updates)
+// takes in one of 8 directions to search in 
+int recur_neighbors(int r_d, int c_d, int row, int col, char **layout)
+{
+    unsigned int num_nbrs = 0;
+
+    if (r_d == INT_MAX) {
+        if (layout[row][col] == '.') {
+            return 0;
+        }
+        for (int i = row-1; i <= row+1; i++) {
+            if ((i < 0) || (i >= ROWS)) {
+                continue;
+            }
+            for (int j = col-1; j <= col+1; j++) {
+                if ((j < 0) || (j >= COLS)) {
+                    continue;
+                }
+                if (i == row && j == col) {
+                    continue;
+                } 
+                if (layout[i][j] == '#') {
+                    num_nbrs++;
+                } else if (layout[i][j] != 'L') {
+                    int row_dir = i - row;
+                    int col_dir = j - col;
+                    num_nbrs += recur_neighbors(row_dir, col_dir, i, j, layout);
+                }
+            }
+        }
+    } else {
+        if (row+r_d < 0 || row+r_d >= ROWS || col+c_d < 0 || col+c_d >= COLS) {
+            return 0;
+        } else {
+            if (layout[row+r_d][col+c_d] == '#') {
+                return 1;
+            } else if (layout[row+r_d][col+c_d] == 'L') {
+                return 0;
+            } else {
+                return recur_neighbors(r_d, c_d, row+r_d, col+c_d, layout);   
+            }
+        }
+    }
+    return num_nbrs;
+}
+
+int update(char **layout, bool **updates, bool part1)
 {
     int updated_seats = 0;
     int nbrs = 0;
+    int max_nbrs = 5;
     int i;
     int j;
 
+    if (part1)
+        max_nbrs = 4;
+
     for (i = 0; i < ROWS; i++) {
         for (j = 0; j < COLS; j++) {
-            nbrs = check_neighbors(i, j, layout);
-            if ((layout[i][j] == '#') && (nbrs >= 4)) {
+            if (part1) {
+                nbrs = check_neighbors(i, j, layout);
+            } else {
+                nbrs = recur_neighbors(INT_MAX, INT_MAX, i, j, layout);
+            }
+            if ((layout[i][j] == '#') && (nbrs >= max_nbrs)) {
                 updates[i][j] = true;
             } else if ((layout[i][j] == 'L') && (nbrs == 0)) {
                 updates[i][j] = true;
@@ -130,10 +181,13 @@ int main(void)
         i++;
     }
 
-    while (update(layout, updates) != 0) {}
+    while (update(layout, updates, true) != 0) {}
     printf("(Part 1) %d seats occupied\n", count_board(layout));
+
     reset_board(layout);
-    print_board(layout);
+    
+    while (update(layout, updates, false) != 0) {}
+    printf("(Part 2) %d seats occupied\n", count_board(layout));
 
     free_2d((void**)layout);
     free_2d((void**)updates);
