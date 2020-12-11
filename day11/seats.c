@@ -161,10 +161,21 @@ int update(char **layout, bool **updates, bool part1)
     return updated_seats;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
     char **layout = malloc(ROWS * sizeof(char*));
     bool **updates = malloc(ROWS * sizeof(bool*));
+
+    // Iterations
+    unsigned int N = 0;
+    if (argc > 1) {
+        N = (unsigned int)atoi(argv[1]);
+        if (N >= 1000) {
+            printf(" -- Warning --\nThis number of iterations will significantly slow down the program!\nUse <Ctrl + C> to abort\n");
+        }
+    }
+    
+
 
     unsigned int i = 0;
     char buffer[BUFSIZE] = {0};
@@ -186,7 +197,6 @@ int main(void)
 
 
     clock_t start, end, sum1, sum2;
-    unsigned int N = 10000;
     double avg_1, avg_2; 
 
     sum1 = 0;
@@ -203,8 +213,8 @@ int main(void)
 
     while (update(layout, updates, true) != 0) {}
     printf("(Part 1) %d seats occupied\n", count_board(layout));
-
-    printf("Average time: %2.3f ms\n", avg_1);
+    if (N > 0)
+        printf("Average time: %2.3f ms\n", avg_1);
     
     reset_board(layout);
     sum2 = 0;
@@ -221,7 +231,8 @@ int main(void)
 
     while (update(layout, updates, false) != 0) {}
     printf("(Part 2) %d seats occupied\n", count_board(layout));
-    printf("Average time: %2.3f ms\n", avg_2);
+    if (N > 0)
+        printf("Average time: %2.3f ms\n", avg_2);
 
     free_2d((void**)layout);
     free_2d((void**)updates);
