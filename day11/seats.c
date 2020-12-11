@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <time.h>
 
 #define BUFSIZE 128
 #define ROWS 91 //10
@@ -181,13 +182,46 @@ int main(void)
         i++;
     }
 
+
+
+
+    clock_t start, end, sum1, sum2;
+    unsigned int N = 10000;
+    double avg_1, avg_2; 
+
+    sum1 = 0;
+
+    for (int n = 0; n < N; n++) {
+        start = clock();
+        while (update(layout, updates, true) != 0) {}
+        end = clock();
+        sum1 += end - start;
+        reset_board(layout);
+    }
+
+    avg_1 = ((((double)(sum1))/CLOCKS_PER_SEC)*(1000.0))/(double)N;
+
     while (update(layout, updates, true) != 0) {}
     printf("(Part 1) %d seats occupied\n", count_board(layout));
 
-    reset_board(layout);
+    printf("Average time: %2.3f ms\n", avg_1);
     
+    reset_board(layout);
+    sum2 = 0;
+    
+    for (int n = 0; n < N; n++) {
+        start = clock();
+        while (update(layout, updates, false) != 0) {}
+        end = clock();
+        sum2 += end - start;
+        reset_board(layout);
+    }
+
+    avg_2 = ((((double)(sum2))/CLOCKS_PER_SEC)*(1000.0))/(double)N;
+
     while (update(layout, updates, false) != 0) {}
     printf("(Part 2) %d seats occupied\n", count_board(layout));
+    printf("Average time: %2.3f ms\n", avg_2);
 
     free_2d((void**)layout);
     free_2d((void**)updates);

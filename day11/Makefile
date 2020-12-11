@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS = -O2
+CFLAGS = -O3
 DFLAGS = -g -Og -std=gnu99
 
 .PHONY: debug
