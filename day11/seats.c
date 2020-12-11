@@ -5,8 +5,47 @@
 #include <assert.h>
 
 #define BUFSIZE 128
-#define ROWS 91 //10
-#define COLS 96 //11
+#define ROWS 10//91 
+#define COLS 11//96 
+
+void print_board(char **layout)
+{
+    for (int i = 0; i < ROWS; i++) {
+        printf("%s\n", layout[i]);
+    }
+}
+
+void free_2d(void **arr)
+{
+    for (int i = 0; i < ROWS; i++) {
+        free(arr[i]);
+    }
+    free(arr);
+}
+
+unsigned int count_board(char **layout)
+{
+    unsigned int num = 0;
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            if (layout[i][j] == '#')
+                num++;
+        }
+    }
+    return num;
+}
+
+void reset_board(char **layout)
+{
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            if (layout[i][j] == '#')
+                layout[i][j] = 'L';
+        }
+    }
+}
+
+
 
 int check_neighbors(int row, int col, char **layout)
 {
@@ -92,21 +131,13 @@ int main(void)
     }
 
     while (update(layout, updates) != 0) {}
-    unsigned int occupied_seats = 0;
+    printf("(Part 1) %d seats occupied\n", count_board(layout));
+    reset_board(layout);
+    print_board(layout);
 
-    for (i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLS; j++) {
-            if (layout[i][j] == '#') {
-                occupied_seats++;
-            }
-            printf("%c", layout[i][j]);
-        }
-        printf("\n");
-        free(layout[i]);
-        free(updates[i]);
-    }
-    free(layout);
-    free(updates);
-    printf("\n(Part 1) %d seats end up occupied\n", occupied_seats);
+    free_2d((void**)layout);
+    free_2d((void**)updates);
+
+    
     return 0;
 }
