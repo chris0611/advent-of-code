@@ -1,8 +1,16 @@
 CC = gcc
-CFLAGS = -Wall -Werror -Og -g -std=gnu99
+CFLAGS = -O3 -Ofast -march=native
+DFLAGS = -Wall -Werror -Og -g -std=gnu99
 
-busses: busses.c
+.PHONY: fast
+
+fast: busses.c
 	$(CC) -o busses busses.c $(CFLAGS)
+
+.PHONY: debug
+
+debug: busses.c
+	$(CC) -o busses busses.c $(DFLAGS)
 
 clean:
 	rm busses
