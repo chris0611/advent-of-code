@@ -83,7 +83,7 @@ uint64_t *possible_addr(uint64_t address, uint8_t *mask, uint32_t *len)
 typedef struct memory {
     uint64_t address;
     uint64_t value;
-} memory;
+}__attribute__ ((packed)) memory;
 
 int main(void)
 {
