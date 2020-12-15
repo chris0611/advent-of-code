@@ -5,8 +5,8 @@
 #include <errno.h>
 #include <stdint.h>
 
-#define CAPACITY 1800000
-#define BUCKET_SIZE 256
+#define CAPACITY 42000
+#define BUCKET_SIZE 128
 
 typedef struct {
     size_t occupied;
