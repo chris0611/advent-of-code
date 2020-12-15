@@ -20,15 +20,6 @@ typedef struct {
 
 unsigned int hash(unsigned int x)
 {
-    /*
-    x = ~x + (x << 15);
-    x = x ^ (x >> 12);
-    x = x + (x << 2);
-    x = x ^ (x >> 4);
-    x = x * 2057;
-    x = x ^ (x >> 16);
-    */
-
     x = (x+0x7ed55d16) + (x<<12);
     x = (x^0xc761c23c) ^ (x>>19);
     x = (x+0x165667b1) + (x<<5);
@@ -98,21 +89,16 @@ int main(void)
     unsigned int diff = 0;
     size_t first = 0;
 
-    //printf("Turn|     [Number]\n");
-    //printf("----+------------------\n");
     unsigned int turn = 1;
     for (; turn <= 6; turn++) {
         ht_insert(turns, numbers[turn-1], turn);
         last = numbers[turn-1];
-        //printf("%3u | Number spoken: %2u\n", turn, last);
         first = 1;
     }
-    //printf("----+------------------\n");
-    
+    // part 1
+    // while (turn <= 2020)
     while (turn <= 30000000) {
         if (first) {
-            // First time last number was spoken
-            //printf("%3u | Number spoken: %2u\n", turn, 0u);
             if (ht_get(turns, 0) != 0 ) {
                 diff = turn - ht_get(turns, 0);
                 last = 0;
@@ -126,9 +112,6 @@ int main(void)
             turn++;
             continue;
         } else {
-            // Last number has been spoken before
-            //printf("%3u | Number spoken: %2u\n", turn, diff);
-            // Is the difference between the last number spoken already been spoken?
             if (ht_get(turns, diff) != 0) {
                 last = diff;
                 first = 0;
