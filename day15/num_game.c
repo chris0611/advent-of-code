@@ -3,14 +3,15 @@
 #include <string.h>
 #include <limits.h>
 #include <errno.h>
+#include <stdint.h>
 
-#define CAPACITY 1200000
+#define CAPACITY 1800000
 #define BUCKET_SIZE 256
 
 typedef struct {
     size_t occupied;
-    unsigned int keys[BUCKET_SIZE];
-    unsigned int values[BUCKET_SIZE];
+    uint32_t keys[BUCKET_SIZE];
+    uint32_t values[BUCKET_SIZE];
 } bucket;
 
 typedef struct {
@@ -18,7 +19,7 @@ typedef struct {
     bucket *buckets;
 } hash_table;
 
-unsigned int hash(unsigned int x)
+unsigned int hash(uint32_t x)
 {
     x = (x+0x7ed55d16) + (x<<12);
     x = (x^0xc761c23c) ^ (x>>19);
@@ -43,13 +44,13 @@ hash_table *ht_init()
         fprintf(stderr, "Calloc failed with: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
-    for (int i = 0; i < CAPACITY; i++) {
+    for (uint32_t i = 0; i < CAPACITY; i++) {
         table->buckets[i].occupied = 0;
     }
     return table;
 }
 
-void ht_insert(hash_table *table, unsigned int key, unsigned int value)
+void ht_insert(hash_table *table, uint32_t key, uint32_t value)
 {
     size_t bucket_id = hash(key) % CAPACITY;
     bucket *bucket = table->buckets + bucket_id;
@@ -68,7 +69,7 @@ void ht_insert(hash_table *table, unsigned int key, unsigned int value)
     ++bucket->occupied;
 }
 
-unsigned int ht_get(hash_table *table, unsigned int key)
+uint32_t ht_get(hash_table *table, uint32_t key)
 {
     size_t bucket_id = hash(key) % CAPACITY;
     bucket *bucket = table->buckets + bucket_id;
@@ -82,14 +83,13 @@ unsigned int ht_get(hash_table *table, unsigned int key)
 
 int main(void)
 {
-    const int numbers[] = {2, 20, 0, 4, 1, 17};
-    const int testing[] = {0, 3, 6};
+    const uint32_t numbers[] = {2, 20, 0, 4, 1, 17};
     hash_table *turns = ht_init();
-    unsigned int last = 0;
-    unsigned int diff = 0;
+    uint32_t last = 0;
+    uint32_t diff = 0;
     size_t first = 0;
 
-    unsigned int turn = 1;
+    uint32_t turn = 1;
     for (; turn <= 6; turn++) {
         ht_insert(turns, numbers[turn-1], turn);
         last = numbers[turn-1];
@@ -115,7 +115,7 @@ int main(void)
             if (ht_get(turns, diff) != 0) {
                 last = diff;
                 first = 0;
-                unsigned int tmp = diff;
+                uint32_t tmp = diff;
                 diff = turn - ht_get(turns, diff);
                 ht_insert(turns, tmp, turn);
             } else {
