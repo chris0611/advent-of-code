@@ -5,8 +5,8 @@
 #include <errno.h>
 #include <stdint.h>
 
-#define CAPACITY 100000
-#define BUCKET_SIZE 60
+#define CAPACITY 65536
+#define BUCKET_SIZE 90
 
 typedef struct {
     size_t occupied;
@@ -43,14 +43,15 @@ hash_table *ht_init()
     return table;
 }
 
-void ht_insert(hash_table *table, uint32_t key, uint32_t value)
+uint32_t ht_insert(hash_table *table, uint32_t key, uint32_t value)
 {
     size_t bucket_id = hash(key) % CAPACITY;
     bucket *bucket = table->buckets + bucket_id;
     for (size_t i = 0; i < bucket->occupied; i++) {
         if (bucket->keys[i] == key) {
+            uint32_t tmp = bucket->values[i];
             bucket->values[i] = value;
-            return;
+            return tmp;
         }
     }
     if (bucket->occupied == BUCKET_SIZE) {
@@ -60,6 +61,7 @@ void ht_insert(hash_table *table, uint32_t key, uint32_t value)
     bucket->keys[bucket->occupied] = key;
     bucket->values[bucket->occupied] = value;
     ++bucket->occupied;
+    return 0;
 }
 
 uint32_t ht_get(hash_table *table, uint32_t key)
@@ -92,11 +94,9 @@ int main(void)
     // while (turn <= 2020)
     while (turn <= 30000000) {
         if (first) {
-            if (ht_get(turns, 0) != 0 ) {
-                diff = turn - ht_get(turns, 0);
+            if ((diff = turn - ht_insert(turns, 0, turn)) != 0 ) {
                 last = 0;
                 first = 0;
-                ht_insert(turns, 0, turn);
             } else {
                 ht_insert(turns, 0, turn);
                 last = 0;
@@ -108,9 +108,7 @@ int main(void)
             if (ht_get(turns, diff) != 0) {
                 last = diff;
                 first = 0;
-                uint32_t tmp = diff;
-                diff = turn - ht_get(turns, diff);
-                ht_insert(turns, tmp, turn);
+                diff = turn - ht_insert(turns, diff, turn);
             } else {
                 ht_insert(turns, diff, turn);
                 last = diff;
