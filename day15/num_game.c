@@ -98,7 +98,6 @@ int main(void)
                 last = 0;
                 first = 0;
             } else {
-                ht_insert(turns, 0, turn);
                 last = 0;
                 first = 1;
             }
