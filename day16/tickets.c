@@ -123,20 +123,18 @@ int main(void)
     }
     printf("Fields read: %d\n", current_f);
     printf("Tickets read: %d\n", current_f/f_count);
-    printf("\033[38;5;127m(Part 1) Ticket scanning error rate: %hd\n\n\033[0m", errors);
+    printf("(Part 1) Ticket scanning error rate: %hd\n", errors);
     
     int8_t found_cf[MAXFIELDS] = {0}; // Each field will be assigned the corresponding column as they are detected (-1 means not found yet)
     memset(found_cf, -1, sizeof(int8_t) * MAXFIELDS);
 
     for (uint8_t i = 0; ; i = (i + 1) % f_count) {
-        if (found_cf[i] == -1) {
-            break;            
-        }
+        uint32_t num_eq_valid = 0;
+        int8_t current_col = -1;
+
     }
 
-
-    //system("Color 30");
-    //printf("\033[1;31mbold red text\033[0m\n");
+    /*
     printf("\033[1;30m    | F01| F02| F03| F04| F05| F06| F07| F08| F09| F10| F11| F12| F13| F14| F15| F16| F17| F18| F19| F20|\033[0m\n"); 
     for (uint8_t i = 0; i < f_count; ++i) {
         uint8_t j;
@@ -154,6 +152,7 @@ int main(void)
         }
         printf("\n");
     }
+    */
     printf("Amount valid: %X (%d)\n", amt_valid, amt_valid);
     return 0;
 }
