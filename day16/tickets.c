@@ -17,6 +17,23 @@ typedef struct {
     uint16_t max2;
 } field;
 
+uint8_t num_found(int8_t *arr, uint8_t len)
+{
+	uint8_t sum = 0;
+	for (uint8_t i = 0; i < len; ++i) {
+		if (arr[i] != -1) ++sum;
+	}
+	return sum;
+}
+
+uint8_t row_taken(int8_t *arr, uint8_t len, uint8_t row)
+{
+	for (uint8_t i = 0; i < len; ++i) {
+		if (arr[i] == row) return 1;
+	}
+	return 0;
+}
+
 int main(void)
 {
     field fields[MAXFIELDS];
@@ -100,7 +117,7 @@ int main(void)
             }
         }
 
-        if (!valid) errors += a; // might need to be before the loop above !!
+        if (!valid) errors += a; 
         valid = 0;
 
         if ((current_f % f_count) == (f_count - 1)) { // end of a ticket
@@ -128,14 +145,59 @@ int main(void)
     int8_t found_cf[MAXFIELDS] = {0}; // Each field will be assigned the corresponding column as they are detected (-1 means not found yet)
     memset(found_cf, -1, sizeof(int8_t) * MAXFIELDS);
 
-    for (uint8_t i = 0; ; i = (i + 1) % f_count) {
-        uint32_t num_eq_valid = 0;
-        int8_t current_col = -1;
 
+	while (num_found(found_cf, f_count) != f_count) { // iterating until every field is assigned a ticket
+        uint32_t num_eq_valid = 0;
+		int8_t current_row = -1;
+        int8_t current_col = -1;
+		for (uint8_t i = 0; i < f_count; ++i) { // iterating through rows (ticket fields)
+			uint16_t sum = 0;
+			uint8_t amt_max = 0;
+			uint8_t temp_col = 0;
+			if (row_taken(found_cf, f_count, i)) continue;
+			//printf("Row: %d\n", i);
+			for (uint8_t j = 0; j < f_count; ++j) { // iterating through columns (fields)
+				if (found_cf[j] == -1) {
+					sum += matched_fields[i][j];
+					if (matched_fields[i][j] == amt_valid) {
+						++amt_max;
+						temp_col = j;
+					} else if (matched_fields[i][j] == amt_valid-1) {
+						temp_col = j;
+					}
+				}
+			}
+			//printf("Amount equal to max: %d\n", amt_max);
+			if (num_eq_valid == 0) {
+				num_eq_valid = amt_max;
+				current_row = i;
+				current_col = temp_col;
+			} else if (amt_max != 0 && amt_max < num_eq_valid) {
+				num_eq_valid = amt_max;
+				current_row = i;
+				current_col = temp_col;
+			} else if (amt_max == 0) {
+				// TODO: figure out how to handle the rows where not every ticket has matched a field
+				//current_row = i;
+				//current_col = temp_col;
+				//printf("hello - row = %d col = %d\n", i, temp_col);
+			}
+			//printf("Temp col: %d\n", temp_col);
+			//printf("Current row: %d\n", current_row);
+			//printf("Current col: %d\n", current_col);
+			//printf("\n");
+		}
+		printf("FINAL ROW: %d\n", current_row);
+		printf("FINAL COL: %d\n", current_col);
+		//break;
+		found_cf[current_col] = current_row;
     }
 
-    /*
-    printf("\033[1;30m    | F01| F02| F03| F04| F05| F06| F07| F08| F09| F10| F11| F12| F13| F14| F15| F16| F17| F18| F19| F20|\033[0m\n"); 
+	printf("\033[1;30m    |\033[0m");
+	for (uint8_t k = 0; k < f_count; ++k) {
+		printf("\033[1;30m F%-2d|\033[0m", k);
+	}
+	printf("\n");
     for (uint8_t i = 0; i < f_count; ++i) {
         uint8_t j;
         for (j = 0; j <= f_count; ++j) {
@@ -152,7 +214,6 @@ int main(void)
         }
         printf("\n");
     }
-    */
     printf("Amount valid: %X (%d)\n", amt_valid, amt_valid);
     return 0;
 }
