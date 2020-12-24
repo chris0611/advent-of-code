@@ -17,6 +17,96 @@ typedef struct {
     uint16_t max2;
 } field;
 
+int cmp(const void *a, const void *b)
+{
+	return (*(int*)a - *(int*)b);
+}
+
+uint16_t find_index(uint32_t *arr, uint32_t value, uint16_t n)
+{
+	for (uint16_t i = 0; i < n; ++i) {
+		if (arr[i] == value) {
+			return i;
+		}
+	}
+	return 0;
+}
+
+uint8_t *sort_rows(uint32_t *arr[], uint16_t n)
+{
+	// assumes input array is of size n²
+	// sum each row of array into new 1D array
+	// sort 1D array
+	// rearrange rows in 2D array
+
+	uint16_t i = 0;
+	uint32_t *copy_arr[MAXFIELDS] = {0};
+
+	uint32_t *sort_arr = malloc(sizeof(uint32_t) * n);
+	uint32_t *orig_arr = calloc(n, sizeof(uint32_t));
+	uint8_t *ret_arr = calloc(n, sizeof(uint8_t));
+	if (sort_arr == NULL || orig_arr == NULL) exit(EXIT_FAILURE);
+
+	for (; i < n; ++i) {
+		copy_arr[i] = malloc(sizeof(uint32_t)*n);
+		memcpy(copy_arr[i], arr[i], sizeof(uint32_t)*n);
+		uint32_t tmp_sum = 0;
+		for (uint16_t j = 0; j < n; ++j) {
+			tmp_sum += arr[i][j];			
+		}
+		orig_arr[i] = tmp_sum;
+	}
+	memcpy(sort_arr, orig_arr, sizeof(uint32_t)*n);
+	qsort(sort_arr, n, sizeof(uint32_t), cmp);
+
+	for (i = 0; i < n; ++i) {
+		//printf("Original index:\t%2hu - %u\n", i, orig_arr[i]);
+		//printf("Sorted index:\t%2hu - %u\n", find_index(orig_arr, sort_arr[i], n), sort_arr[i]);
+		ret_arr[i] = find_index(orig_arr, sort_arr[i], n);
+		memcpy(arr[i], copy_arr[find_index(orig_arr, sort_arr[i], n)], sizeof(uint32_t)*n);
+	}
+
+	for (i = 0; i < MAXFIELDS; ++i) {
+		free(copy_arr[i]);
+	}
+	
+	free(sort_arr);
+	free(orig_arr);
+	return ret_arr;
+}
+
+uint8_t *sort_cols(uint32_t *arr[], uint16_t n)
+{
+	uint16_t i = 0;
+	uint32_t *copy_arr[MAXFIELDS] = {0};
+
+	uint32_t *sort_arr = malloc(sizeof(uint32_t)*n);
+	uint32_t *orig_arr = calloc(n, sizeof(uint32_t));
+	uint8_t *ret_arr = malloc(sizeof(uint8_t)*n);
+
+	for (; i < n; ++i) {
+		copy_arr[i] = malloc(sizeof(uint32_t)*n);
+		memcpy(copy_arr[i], arr[i], sizeof(uint32_t)*n);
+		for (uint16_t j = 0; j < n; ++j) {
+			orig_arr[j] += arr[i][j];
+		}
+	}
+	memcpy(sort_arr, orig_arr, sizeof(uint32_t)*n);
+	qsort(sort_arr, n, sizeof(uint32_t), cmp);
+
+	for (i = 0; i < n; ++i) {
+		//printf("Original column: %2hu = %u\n", i, orig_arr[i]);
+		//printf("Sorted column:\t %2hu = %u\n", find_index(orig_arr, sort_arr[i], n), sort_arr[i]);
+		for (uint16_t j = 0; j < n; ++j) {
+			arr[i][j] = copy_arr[i][find_index(orig_arr, sort_arr[j], n)];
+			//printf("%2x ", copy_arr[i][j]);
+		}
+		//printf("\n");
+	}
+
+	return 0;
+}
+
 uint8_t num_found(int8_t *arr, uint8_t len)
 {
 	uint8_t sum = 0;
@@ -55,8 +145,8 @@ int main(void)
 
     // Reading input fields
     while (fgets(buffer, BUFSIZE, stdin) != NULL ) {
-        if ((sscanf(buffer, "%s %*s %hd-%hd or %hd-%hd\n", f_name, &a, &b, &c, &d) == 5) || 
-            (sscanf(buffer, "%s %hd-%hd or %hd-%hd\n", f_name, &a, &b, &c, &d) == 5)) {
+        if ((sscanf(buffer, "%s %*s %hu-%hu or %hu-%hu\n", f_name, &a, &b, &c, &d) == 5) || 
+            (sscanf(buffer, "%s %hu-%hu or %hu-%hu\n", f_name, &a, &b, &c, &d) == 5)) {
 
             strncpy(fields[f_count].name, f_name, STRINGLEN);
             fields[f_count].min1 = a;
@@ -105,10 +195,10 @@ int main(void)
     uint16_t num_buf[MAXFIELDS] = {0};
     uint32_t *matched_fields[MAXFIELDS] = {0};
     for (uint8_t i = 0; i < f_count; ++i) {
-        matched_fields[i] = malloc(sizeof(uint32_t) * f_count);
+        matched_fields[i] = calloc(f_count, sizeof(uint32_t));
     }
 
-    while (fscanf(stdin, "%hd,", &a) == 1) {
+    while (fscanf(stdin, "%hu,", &a) == 1) {
         //printf("%4d = %3d\n", current_f, a);
         for (uint8_t i = 0; i < f_count; ++i) {
             if ((a >= fields[i].min1 && a <= fields[i].max1) || (a >= fields[i].min2 && a <= fields[i].max2)) {
@@ -117,22 +207,28 @@ int main(void)
             }
         }
 
-        if (!valid) errors += a; 
+        if (!valid) {
+			//printf("\033[1;31mInvalid ticket!\n\033[0m");
+			errors += a; 
+		} 
         valid = 0;
 
         if ((current_f % f_count) == (f_count - 1)) { // end of a ticket
             if (prev_err_count == errors) {
+				//printf("\033[1;32mEnd of valid ticket!\n\033[0m");
                 ++amt_valid;
                 for (uint8_t i = 0; i < f_count; ++i) {
                     uint16_t num = num_buf[i];
                     num_buf[i] = 0;
                     for (uint8_t j = 0; j < f_count; ++j) {
                         if ((num >= fields[j].min1 && num <= fields[j].max1) || (num >= fields[j].min2 && num <= fields[j].max2)) {
+							//printf("Num: %d\n", num);
                             matched_fields[i][j] += 1;
                         }
                     }
                 }
             }
+			//printf("\n");
             prev_err_count = errors;
         }
 
@@ -140,7 +236,7 @@ int main(void)
     }
     printf("Fields read: %d\n", current_f);
     printf("Tickets read: %d\n", current_f/f_count);
-    printf("(Part 1) Ticket scanning error rate: %hd\n", errors);
+    printf("(Part 1) Ticket scanning error rate: %hu\n", errors);
     
     int8_t found_cf[MAXFIELDS] = {0}; // Each field will be assigned the corresponding column as they are detected (-1 means not found yet)
     memset(found_cf, -1, sizeof(int8_t) * MAXFIELDS);
@@ -151,18 +247,16 @@ int main(void)
 		int8_t current_row = -1;
         int8_t current_col = -1;
 		for (uint8_t i = 0; i < f_count; ++i) { // iterating through rows (ticket fields)
-			uint16_t sum = 0;
 			uint8_t amt_max = 0;
 			uint8_t temp_col = 0;
 			if (row_taken(found_cf, f_count, i)) continue;
 			//printf("Row: %d\n", i);
 			for (uint8_t j = 0; j < f_count; ++j) { // iterating through columns (fields)
 				if (found_cf[j] == -1) {
-					sum += matched_fields[i][j];
 					if (matched_fields[i][j] == amt_valid) {
 						++amt_max;
 						temp_col = j;
-					} else if (matched_fields[i][j] == amt_valid-1) {
+					} else if (temp_col == 0) {
 						temp_col = j;
 					}
 				}
@@ -176,23 +270,33 @@ int main(void)
 				num_eq_valid = amt_max;
 				current_row = i;
 				current_col = temp_col;
-			} else if (amt_max == 0) {
-				// TODO: figure out how to handle the rows where not every ticket has matched a field
-				//current_row = i;
-				//current_col = temp_col;
-				//printf("hello - row = %d col = %d\n", i, temp_col);
 			}
-			//printf("Temp col: %d\n", temp_col);
-			//printf("Current row: %d\n", current_row);
-			//printf("Current col: %d\n", current_col);
-			//printf("\n");
 		}
+		// handle fields with no matched equal to total fields matched
 		printf("FINAL ROW: %d\n", current_row);
 		printf("FINAL COL: %d\n", current_col);
 		//break;
 		found_cf[current_col] = current_row;
     }
+	uint8_t *row_order = malloc(sizeof(uint8_t)*f_count);	
+	uint8_t *column_order = malloc(sizeof(uint8_t)*f_count);
 
+	row_order = sort_rows(matched_fields, f_count);
+	sort_cols(matched_fields, f_count);
+
+	uint64_t product = 1;
+	// going through my ticket
+	/*
+	for (uint8_t i = 0; i < f_count; ++i) {
+		if (fields[i].name[0] == 'd' && fields[i].name[1] == 'e') {
+			int8_t index = found_cf[i];
+			printf("Accessing field %d - %s [%hu-%hu] or [%hu-%hu]\nWith ticket field: %d\n", i, fields[i].name, fields[i].min1, fields[i].max1, fields[i].min2, fields[i].max2, index);
+			printf("Multiplying product by %u\n", my_ticket[index]);
+			product *= (uint64_t)my_ticket[index];
+		}
+	}
+	printf("(Part 2) Product of fields is: %lu\n", product);
+	*/
 	printf("\033[1;30m    |\033[0m");
 	for (uint8_t k = 0; k < f_count; ++k) {
 		printf("\033[1;30m F%-2d|\033[0m", k);
@@ -204,7 +308,7 @@ int main(void)
             printf("\033[1;30m----+\033[0m");
         }
         printf("\n");
-        printf("\033[7;30;1;30mT%-2d\033[0m \033[1;30m|\033[0m ",i);
+        printf("\033[7;30;1;30mT%-2d\033[0m \033[1;30m|\033[0m ",row_order[i]);
         for (j = 0; j < f_count; ++j) {
             if (matched_fields[i][j] == 192) {
                 printf("\033[0;30m\033[48;5;67m%2X\033[0m \033[1;30m|\033[0m ", matched_fields[i][j]);
@@ -214,6 +318,10 @@ int main(void)
         }
         printf("\n");
     }
-    printf("Amount valid: %X (%d)\n", amt_valid, amt_valid);
+
+	for (uint16_t i = 0; i < f_count; ++i) {
+		free(matched_fields[i]);
+	}
+
     return 0;
 }
