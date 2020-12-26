@@ -101,10 +101,11 @@ uint8_t *sort_cols(uint32_t *arr[], uint16_t n)
 			arr[i][j] = copy_arr[i][find_index(orig_arr, sort_arr[j], n)];
 			//printf("%2x ", copy_arr[i][j]);
 		}
+		ret_arr[i] = find_index(orig_arr, sort_arr[i], n);
 		//printf("\n");
 	}
 
-	return 0;
+	return ret_arr;
 }
 
 uint8_t num_found(int8_t *arr, uint8_t len)
@@ -168,14 +169,14 @@ int main(void)
     if (scanf("\nyour %*s\n") != 0) exit(EXIT_FAILURE);
     if (fgets(buffer, BUFSIZE, stdin) == NULL) exit(EXIT_FAILURE);
 
-    printf("My ticket:\n");
+    //printf("My ticket:\n");
     for (uint8_t i = 0; i < strlen(buffer); ++i) {
         if (isdigit(buffer[i])) {
-            printf("%c", buffer[i]);
+            //printf("%c", buffer[i]);
             num[string_len] = buffer[i];
             ++string_len;
         } else {
-            printf(" ");
+            //printf(" ");
             num[string_len] = '\0';
             my_ticket[ticket_len] = atoi(num);
             memset(num, 0, (size_t)string_len);
@@ -184,7 +185,7 @@ int main(void)
             if (buffer[i] == '\n') break; 
         }
     }
-    printf("\n");
+    //printf("\n");
     if (scanf("\nnearby %*s\n") != 0) exit(EXIT_FAILURE);
 
     uint16_t prev_err_count = 0;
@@ -199,7 +200,6 @@ int main(void)
     }
 
     while (fscanf(stdin, "%hu,", &a) == 1) {
-        //printf("%4d = %3d\n", current_f, a);
         for (uint8_t i = 0; i < f_count; ++i) {
             if ((a >= fields[i].min1 && a <= fields[i].max1) || (a >= fields[i].min2 && a <= fields[i].max2)) {
                 num_buf[current_f % f_count] = a;
@@ -209,16 +209,21 @@ int main(void)
 
         if (!valid) {
 			//printf("\033[1;31mInvalid ticket!\n\033[0m");
-			errors += a; 
+			//printf("\033[1;31m");
+			errors += 1; 
 		} 
         valid = 0;
+        //printf("%3u \033[0m", a);
 
         if ((current_f % f_count) == (f_count - 1)) { // end of a ticket
+			//printf("\n");
             if (prev_err_count == errors) {
 				//printf("\033[1;32mEnd of valid ticket!\n\033[0m");
                 ++amt_valid;
+				//printf("\033[1;32m");
                 for (uint8_t i = 0; i < f_count; ++i) {
                     uint16_t num = num_buf[i];
+					//printf("%3u ", num);
                     num_buf[i] = 0;
                     for (uint8_t j = 0; j < f_count; ++j) {
                         if ((num >= fields[j].min1 && num <= fields[j].max1) || (num >= fields[j].min2 && num <= fields[j].max2)) {
@@ -227,6 +232,7 @@ int main(void)
                         }
                     }
                 }
+				//printf("\n\033[0m");
             }
 			//printf("\n");
             prev_err_count = errors;
@@ -237,69 +243,25 @@ int main(void)
     printf("Fields read: %d\n", current_f);
     printf("Tickets read: %d\n", current_f/f_count);
     printf("(Part 1) Ticket scanning error rate: %hu\n", errors);
-    
-    int8_t found_cf[MAXFIELDS] = {0}; // Each field will be assigned the corresponding column as they are detected (-1 means not found yet)
-    memset(found_cf, -1, sizeof(int8_t) * MAXFIELDS);
 
-
-	while (num_found(found_cf, f_count) != f_count) { // iterating until every field is assigned a ticket
-        uint32_t num_eq_valid = 0;
-		int8_t current_row = -1;
-        int8_t current_col = -1;
-		for (uint8_t i = 0; i < f_count; ++i) { // iterating through rows (ticket fields)
-			uint8_t amt_max = 0;
-			uint8_t temp_col = 0;
-			if (row_taken(found_cf, f_count, i)) continue;
-			//printf("Row: %d\n", i);
-			for (uint8_t j = 0; j < f_count; ++j) { // iterating through columns (fields)
-				if (found_cf[j] == -1) {
-					if (matched_fields[i][j] == amt_valid) {
-						++amt_max;
-						temp_col = j;
-					} else if (temp_col == 0) {
-						temp_col = j;
-					}
-				}
-			}
-			//printf("Amount equal to max: %d\n", amt_max);
-			if (num_eq_valid == 0) {
-				num_eq_valid = amt_max;
-				current_row = i;
-				current_col = temp_col;
-			} else if (amt_max != 0 && amt_max < num_eq_valid) {
-				num_eq_valid = amt_max;
-				current_row = i;
-				current_col = temp_col;
-			}
-		}
-		// handle fields with no matched equal to total fields matched
-		printf("FINAL ROW: %d\n", current_row);
-		printf("FINAL COL: %d\n", current_col);
-		//break;
-		found_cf[current_col] = current_row;
-    }
 	uint8_t *row_order = malloc(sizeof(uint8_t)*f_count);	
 	uint8_t *column_order = malloc(sizeof(uint8_t)*f_count);
 
 	row_order = sort_rows(matched_fields, f_count);
-	sort_cols(matched_fields, f_count);
+	column_order = sort_cols(matched_fields, f_count);
 
 	uint64_t product = 1;
 	// going through my ticket
-	/*
 	for (uint8_t i = 0; i < f_count; ++i) {
-		if (fields[i].name[0] == 'd' && fields[i].name[1] == 'e') {
-			int8_t index = found_cf[i];
-			printf("Accessing field %d - %s [%hu-%hu] or [%hu-%hu]\nWith ticket field: %d\n", i, fields[i].name, fields[i].min1, fields[i].max1, fields[i].min2, fields[i].max2, index);
-			printf("Multiplying product by %u\n", my_ticket[index]);
-			product *= (uint64_t)my_ticket[index];
+		if (fields[column_order[i]].name[0] == 'd'  && fields[column_order[i]].name[1] == 'e') {
+			product *= (uint64_t)my_ticket[row_order[(f_count-1)-i]];
 		}
 	}
 	printf("(Part 2) Product of fields is: %lu\n", product);
-	*/
+	/*
 	printf("\033[1;30m    |\033[0m");
 	for (uint8_t k = 0; k < f_count; ++k) {
-		printf("\033[1;30m F%-2d|\033[0m", k);
+		printf("\033[1;30m F%-2d|\033[0m", column_order[k]);
 	}
 	printf("\n");
     for (uint8_t i = 0; i < f_count; ++i) {
@@ -310,7 +272,7 @@ int main(void)
         printf("\n");
         printf("\033[7;30;1;30mT%-2d\033[0m \033[1;30m|\033[0m ",row_order[i]);
         for (j = 0; j < f_count; ++j) {
-            if (matched_fields[i][j] == 192) {
+            if (matched_fields[i][j] == 190) {
                 printf("\033[0;30m\033[48;5;67m%2X\033[0m \033[1;30m|\033[0m ", matched_fields[i][j]);
             } else {
                 printf("\033[1;30m%2X |\033[0m ", matched_fields[i][j]);
@@ -318,7 +280,7 @@ int main(void)
         }
         printf("\n");
     }
-
+	*/
 	for (uint16_t i = 0; i < f_count; ++i) {
 		free(matched_fields[i]);
 	}
